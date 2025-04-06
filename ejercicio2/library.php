@@ -6,17 +6,6 @@ if (!isset($_SESSION['books'])) {
   $_SESSION['books'] = [];
 }
 
-
-function tieneError($campo, $errores)
-{
-  foreach ($errores as $error) {
-    if (stripos($error, $campo) !== false) {
-      return true;
-    }
-  }
-  return false;
-}
-
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
   function validarCampos($data)
@@ -28,12 +17,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
       $errores['author'] = 'Formato incorrecto. Use "APELLIDOS, Nombre" o "VARIOS AUTORES".';
     }
 
-    // 2. TÍTULO DEL LIBRO: sin comillas.
+    // 2. TÍTULO DEL LIBRO: sin comillas
     if (!preg_match('/^[^"]{2,}$/u', $data['book_title'])) {
       $errores['book_title'] = 'El título no debe estar entre comillas.';
     }
 
-    // 3. NÚMERO DE EDICIÓN: número entero positivo.
+    // 3. NÚMERO DE EDICIÓN: número entero positivo
     if (!preg_match('/^\d{1,3}$/', $data['edition'])) {
       $errores['edition'] = 'Ingrese un número válido de edición.';
     }
@@ -46,6 +35,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // 5. ISBN: formato como 978-92-95055-02-5
     if (!preg_match('/^\d{3}-\d{2}-\d{5}-\d{2}-\d{1}$/', $data['isbn'])) {
       $errores['isbn'] = 'Formato ISBN inválido. Use el formato 978-92-95055-02-5.';
+    }
+
+    if (empty($data['publisher'])) {
+      $errores['publisher'] = 'La editorial no es válida.';
+    }
+
+    if (empty($data['publish_place'])) {
+      $errores['publish_place'] = 'El lugar de publicación no es válido.';
     }
 
     return $errores;
@@ -70,16 +67,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   }
 }
 
-// Función para verificar si existe un error específico para un campo
-function getError($campo, $errores)
+
+function hasError($campo, $errores)
 {
-  return isset($errores[$campo]) ? $errores[$campo] : '';
+  return isset($errores[$campo]);
 }
 
-// Función para verificar si hay un error para mostrar el estado de validación
-function tieneErrorCampo($campo, $errores)
+function getError($campo, $errores)
 {
-  return isset($errores) && isset($errores[$campo]);
+  return $errores[$campo] ?? '';
+}
+
+function mostrarLibros($libros)
+{
+  $html = '';
+  foreach ($libros as $libro) {
+    $html .= '<tr>';
+    foreach ($libro as $campo => $valor) {
+      $html .= '<td>' . ($valor) . '</td>';
+    }
+    $html .= '</tr>';
+  }
+  return $html;
 }
 
 ?>
@@ -105,10 +114,10 @@ function tieneErrorCampo($campo, $errores)
             <div class="col">
               <div class="form-outline">
                 <input type="text" id="author" name="author"
-                  class="form-control <?= tieneErrorCampo('author', $errores ?? []) ? 'is-invalid' : '' ?>"
-                  value="<?= htmlspecialchars($_POST['author'] ?? '') ?>" />
+                  class="form-control <?= hasError('author', $errores ?? []) ? 'is-invalid' : '' ?>"
+                  value="<?= ($_POST['author'] ?? '') ?>" />
                 <label class="form-label" for="author">Autor</label>
-                <?php if (tieneErrorCampo('author', $errores ?? [])): ?>
+                <?php if (hasError('author', $errores ?? [])): ?>
                   <div class="invalid-feedback"><?= getError('author', $errores) ?></div>
                 <?php endif; ?>
               </div>
@@ -116,10 +125,10 @@ function tieneErrorCampo($campo, $errores)
             <div class="col">
               <div class="form-outline">
                 <input type="text" id="edition" name="edition"
-                  class="form-control <?= tieneErrorCampo('edition', $errores ?? []) ? 'is-invalid' : '' ?>"
-                  value="<?= htmlspecialchars($_POST['edition'] ?? '') ?>" />
+                  class="form-control <?= hasError('edition', $errores ?? []) ? 'is-invalid' : '' ?>"
+                  value="<?= ($_POST['edition'] ?? '') ?>" />
                 <label class="form-label" for="edition">Edición</label>
-                <?php if (tieneErrorCampo('edition', $errores ?? [])): ?>
+                <?php if (hasError('edition', $errores ?? [])): ?>
                   <div class="invalid-feedback"><?= getError('edition', $errores) ?></div>
                 <?php endif; ?>
               </div>
@@ -130,21 +139,21 @@ function tieneErrorCampo($campo, $errores)
             <div class="col">
               <div class="form-outline">
                 <input type="text" id="publisher" name="publisher"
-                  class="form-control <?= isset($errores) && tieneError('publisher', $errores) ? 'is-invalid' : '' ?>"
-                  value="<?= htmlspecialchars($_POST['publisher'] ?? '') ?>" />
+                  class="form-control <?= hasError('publisher', $errores) ? 'is-invalid' : '' ?>"
+                  value="<?= ($_POST['publisher'] ?? '') ?>" />
                 <label class="form-label" for="publisher">Editorial</label>
-                <?php if (isset($errores) && tieneError('publisher', $errores)): ?>
-                  <div class="invalid-feedback">La editorial no es válida.</div>
+                <?php if (hasError('publisher', $errores ?? [])): ?>
+                  <div class="invalid-feedback"><?= getError('publisher', $errores) ?></div>
                 <?php endif; ?>
               </div>
             </div>
             <div class="col">
               <div class="form-outline">
                 <input type="text" id="publish_date" name="publish_date"
-                  class="form-control <?= tieneErrorCampo('publish_date', $errores ?? []) ? 'is-invalid' : '' ?>"
-                  value="<?= htmlspecialchars($_POST['publish_date'] ?? '') ?>" />
+                  class="form-control <?= hasError('publish_date', $errores ?? []) ? 'is-invalid' : '' ?>"
+                  value="<?= ($_POST['publish_date'] ?? '') ?>" />
                 <label class="form-label" for="publish_date">Año de edición</label>
-                <?php if (tieneErrorCampo('publish_date', $errores ?? [])): ?>
+                <?php if (hasError('publish_date', $errores ?? [])): ?>
                   <div class="invalid-feedback"><?= getError('publish_date', $errores) ?></div>
                 <?php endif; ?>
               </div>
@@ -153,46 +162,47 @@ function tieneErrorCampo($campo, $errores)
 
           <div class="form-outline mb-4">
             <input type="text" id="book_title" name="book_title"
-              class="form-control <?= tieneErrorCampo('book_title', $errores ?? []) ? 'is-invalid' : '' ?>"
-              value="<?= htmlspecialchars($_POST['book_title'] ?? '') ?>" />
+              class="form-control <?= hasError('book_title', $errores ?? []) ? 'is-invalid' : '' ?>"
+              value="<?= ($_POST['book_title'] ?? '') ?>" />
             <label class="form-label" for="book_title">Título del libro</label>
-            <?php if (tieneErrorCampo('book_title', $errores ?? [])): ?>
+            <?php if (hasError('book_title', $errores ?? [])): ?>
               <div class="invalid-feedback"><?= getError('book_title', $errores) ?></div>
             <?php endif; ?>
           </div>
 
           <div class="form-outline mb-4">
             <input type="text" id="publish_place" name="publish_place"
-              class="form-control <?= isset($errores) && tieneError('publish_place', $errores) ? 'is-invalid' : '' ?>"
-              value="<?= htmlspecialchars($_POST['publish_place'] ?? '') ?>" />
+              class="form-control <?= hasError('publish_place', $errores) ? 'is-invalid' : '' ?>"
+              value="<?= ($_POST['publish_place'] ?? '') ?>" />
             <label class="form-label" for="publish_place">Lugar de publicación</label>
-            <?php if (isset($errores) && tieneError('publish_place', $errores)): ?>
-              <div class="invalid-feedback">El lugar de publicación no es válido.</div>
+            <?php if (hasError('publish_place', $errores ?? [])): ?>
+              <div class="invalid-feedback"><?= getError('publish_place', $errores) ?></div>
             <?php endif; ?>
           </div>
 
           <div class="form-outline mb-4">
             <input type="text" id="isbn" name="isbn"
-              class="form-control <?= tieneErrorCampo('isbn', $errores ?? []) ? 'is-invalid' : '' ?>"
-              value="<?= htmlspecialchars($_POST['isbn'] ?? '') ?>" />
+              class="form-control <?= hasError('isbn', $errores ?? []) ? 'is-invalid' : '' ?>"
+              value="<?= ($_POST['isbn'] ?? '') ?>" />
             <label class="form-label" for="isbn">ISBN</label>
-            <?php if (tieneErrorCampo('isbn', $errores ?? [])): ?>
+            <?php if (hasError('isbn', $errores ?? [])): ?>
               <div class="invalid-feedback"><?= getError('isbn', $errores) ?></div>
             <?php endif; ?>
           </div>
 
           <div class="form-outline mb-4">
             <input type="number" id="page_count" name="page_count"
-              class="form-control <?= isset($errores) && tieneError('page_count', $errores) ? 'is-invalid' : '' ?>"
-              value="<?= htmlspecialchars($_POST['page_count'] ?? '') ?>" />
+              min="1" max="9999"
+              class="form-control <?= hasError('page_count', $errores) ? 'is-invalid' : '' ?>"
+              value="<?= ($_POST['page_count'] ?? '') ?>" />
             <label class="form-label" for="page_count">Número de páginas</label>
-            <?php if (isset($errores) && tieneError('page_count', $errores)): ?>
-              <div class="invalid-feedback">El número de páginas no es válido.</div>
+            <?php if (hasError('page_count', $errores ?? [])): ?>
+              <div class="invalid-feedback"><?= getError('page_count', $errores) ?></div>
             <?php endif; ?>
           </div>
 
           <div class="form-outline mb-4">
-            <textarea class="form-control" id="notes" name="notes" rows="4"><?= htmlspecialchars($_POST['notes'] ?? '') ?></textarea>
+            <textarea class="form-control" id="notes" name="notes" rows="4"><?= ($_POST['notes'] ?? '') ?></textarea>
             <label class="form-label" for="notes">Notas</label>
           </div>
 
@@ -220,19 +230,7 @@ function tieneErrorCampo($campo, $errores)
                   </tr>
                 </thead>
                 <tbody>
-                  <?php foreach ($_SESSION['books'] as $libro): ?>
-                    <tr>
-                      <td><?= htmlspecialchars($libro['book_title']) ?></td>
-                      <td><?= htmlspecialchars($libro['author']) ?></td>
-                      <td><?= htmlspecialchars($libro['edition']) ?></td>
-                      <td><?= htmlspecialchars($libro['publisher']) ?></td>
-                      <td><?= htmlspecialchars($libro['publish_date']) ?></td>
-                      <td><?= htmlspecialchars($libro['publish_place']) ?></td>
-                      <td><?= htmlspecialchars($libro['isbn']) ?></td>
-                      <td><?= htmlspecialchars($libro['page_count']) ?></td>
-                      <td><?= htmlspecialchars($libro['notes']) ?></td>
-                    </tr>
-                  <?php endforeach; ?>
+                  <?= mostrarLibros($_SESSION['books']); ?>
                 </tbody>
               </table>
             </div>
