@@ -71,13 +71,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 
 // Función para verificar si existe un error específico para un campo
-function getError($campo, $errores) {
-    return isset($errores[$campo]) ? $errores[$campo] : '';
+function getError($campo, $errores)
+{
+  return isset($errores[$campo]) ? $errores[$campo] : '';
 }
 
 // Función para verificar si hay un error para mostrar el estado de validación
-function tieneErrorCampo($campo, $errores) {
-    return isset($errores) && isset($errores[$campo]);
+function tieneErrorCampo($campo, $errores)
+{
+  return isset($errores) && isset($errores[$campo]);
 }
 
 ?>
@@ -97,7 +99,7 @@ function tieneErrorCampo($campo, $errores) {
 
   <div class="container">
     <div class="row">
-      <div class="col">
+      <div class="col-4">
         <form class="mt-5 mx-5" method="POST">
           <div class="row mb-4">
             <div class="col">
@@ -198,10 +200,10 @@ function tieneErrorCampo($campo, $errores) {
         </form>
 
       </div>
-      <div class="col">
+      <div class="col-8">
         <div class="mt-5">
           <?php if (isset($_SESSION['books']) && count($_SESSION['books']) > 0): ?>
-            <h4 class="mb-4">Libros libros agregados</h4>
+            <h4 class="mb-4">Libros agregados</h4>
             <div class="table-responsive">
               <table class="table table-striped table-bordered">
                 <thead class="table-dark">
